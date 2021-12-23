@@ -5,7 +5,7 @@
 @implements IAsyncDisposable
 @using System;
 
-<PageTitle>Badamsat!</PageTitle>
+<PageTitle>Badam Sat!</PageTitle>
 
 @if (gameRunning is null)
 {
@@ -19,7 +19,9 @@ else
     }
     @if (gameRunning.state == 1)
     {
-        <h2 class="username">@username</h2>
+        <div class="playertab">
+            <HandView hand=gameRunning.hands[userID] active=@(gameRunning.currentPlayerID == userID) username=@gameRunning.usernames[userID]></HandView>
+        </div>
         <div class="playertab">
         @for (int i = userID + 1; i < gameRunning.hands.Count; i++)
         {
