@@ -55,6 +55,7 @@ input {
     margin-left: 38%;
     text-align: center;
     padding: 10px;
+    border-radius: 15px;
 }
 
     input::placeholder {
@@ -195,4 +196,11 @@ button {
 .startbutton {
     margin-top: 100px;
     margin-bottom: 50px;
+}
+
+.welcomebutton {
+    margin-top: 1em;
+    border: solid #00365C 2px;
+    color: #00365C;
+    border-radius: 15px;
 }
