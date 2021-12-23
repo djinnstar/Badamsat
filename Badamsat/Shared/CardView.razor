@@ -1,0 +1,66 @@
+﻿<span class=@("card " + Activity()) @onclick="Click">
+    <span class="number">@RenderNumber()</span>
+    <img src=@RenderSuit() alt=@RenderSuit()/>
+</span>
+
+@code {
+    [Parameter]
+    public Badamsat.Card card { get; set; }
+
+    [Parameter]
+    public bool active { get; set; }
+
+    [Parameter]
+    public int index { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnClickCallback { get; set; }
+
+    [Parameter]
+    public bool clicked { get; set; }
+
+    [Parameter]
+    public bool clickable { get; set; }
+
+    public string Activity()
+    {
+        if (clicked)
+            return "clicked";
+        if (active)
+            return "active";
+        return "inactive";
+    }
+
+    public void Click()
+    {
+        if (clickable)
+            OnClickCallback.InvokeAsync(index);
+    }
+
+    public string RenderSuit()
+    {
+        string suit = "";
+        if (card.suit == 1)
+            suit = "images/Hearts.png";
+        else if (card.suit == 2)
+            suit = "images/Clubs.png";
+        else if (card.suit == 3)
+            suit = "images/Diamonds.png";
+        else if (card.suit == 4)
+            suit = "images/Spades.png";
+        return suit;
+    }
+
+    public string RenderNumber()
+    {
+        if (card.number == 1)
+            return "A";
+        if (card.number == 11)
+            return "J";
+        if (card.number == 12)
+            return "Q";
+        if (card.number == 13)
+            return "K";
+        return card.number.ToString();
+    }
+}

@@ -1,0 +1,15 @@
+﻿@page "/gameend/{winner}"
+@inject NavigationManager NavigationManager
+
+<h3>Winner: @winner</h3>
+<button @onclick="NewGame">Play again?</button>
+
+@code {
+    [Parameter]
+    public string winner { get; set; }
+
+    public void NewGame()
+    {
+        NavigationManager.NavigateTo("");
+    }
+}

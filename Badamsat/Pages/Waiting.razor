@@ -1,0 +1,33 @@
+﻿@if (userID == 0)
+{
+    <button class="startbutton active" @onclick="Click">Click here to start!</button>
+}
+else
+{
+    <h3>Waiting for the first player to begin the game</h3>
+}
+<h2>Players</h2>
+@if (usernames is not null)
+{
+    @foreach (var username in usernames)
+    {
+        <div class="waitingusername">@username</div>
+    }    
+}
+
+
+@code {
+    [Parameter]
+    public int userID { get; set; }
+
+    [Parameter]
+    public List<string> usernames { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> e { get; set; }
+
+    public async void Click()
+    {
+        await e.InvokeAsync();
+    }
+}

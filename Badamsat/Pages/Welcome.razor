@@ -1,0 +1,32 @@
+﻿@page "/"
+@inject NavigationManager NavigationManager
+@using Microsoft.AspNetCore.SignalR.Client
+
+<link href="~/css/game.css" rel="stylesheet" />
+<h1>Badamsat!</h1>
+<div>
+    <p>Name</p>
+    <label for="name"></label><input @bind="name" @onkeyup="Send" type="text" id="name">
+</div>
+
+@code 
+{
+    public string? name;
+
+    protected override async Task OnInitializedAsync()
+    {
+        HubConnection hubConnection = new HubConnectionBuilder()
+        .WithUrl(NavigationManager.ToAbsoluteUri("/chathub"))
+        .Build();
+
+        await hubConnection.StartAsync();
+    }
+
+    private void Send(KeyboardEventArgs e)
+    {
+        if (e.Code == "Enter" && name != "")
+        {
+            NavigationManager.NavigateTo("game/" + name);
+        }
+    }
+}

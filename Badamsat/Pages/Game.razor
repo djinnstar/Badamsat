@@ -1,0 +1,164 @@
+﻿@page "/game/{username}"
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NavigationManager
+@using Badamsat
+@implements IAsyncDisposable
+@using System;
+
+<PageTitle>Badamsat!</PageTitle>
+
+@if (gameRunning is null)
+{
+    <p>game is null</p>
+}
+else 
+{
+    @if (gameRunning.state == 0)
+    {
+        <Waiting userID=@userID usernames=@gameRunning.usernames e="@StartGame"></Waiting>
+    }
+    @if (gameRunning.state == 1)
+    {
+        <h2 class="username">@username</h2>
+        <div class="playertab">
+        @for (int i = userID + 1; i < gameRunning.hands.Count; i++)
+        {
+            <HandView hand=gameRunning.hands[i] active=@(i == gameRunning.currentPlayerID) username=@gameRunning.usernames[i]/>
+        }
+        @for (int i = 0; i < userID; i++)
+        {
+            <HandView hand=gameRunning.hands[i] active=@(i == gameRunning.currentPlayerID) username=@gameRunning.usernames[i]/>
+        }
+        </div>
+        <div class="straightline"></div>
+        <div class="piles">
+        @for (int i = 0; i < gameRunning.piles.Count; i++)
+        {
+            <PileView pile=gameRunning.piles[i] active=@(clickedCard is not null && gameRunning.AvailablePlays(userID)[(int)clickedCard].Contains(i)) index=@i OnClickCallback="@ChoosePile" clickable=@CanClickPile(i, clickedCard) clicked=@false/>
+        }
+        <PileView pile=@(new Badamsat.Pile()) active=@(clickedCard is not null && gameRunning.AvailablePlays(userID)[(int)clickedCard].Contains(gameRunning.piles.Count)) index=@(gameRunning.piles.Count) OnClickCallback="@ChoosePile" clickable=@CanClickPile(gameRunning.piles.Count, clickedCard) clicked=@false/>
+        @if (active && !gameRunning.HasPlays(this.userID))
+        {
+            <button class=@PassButtonClass() @onclick="Pass">Pass</button>
+        }
+        </div>
+        <div class="straightline"></div>
+        @if (userID < gameRunning.hands.Count)
+        {
+            <div class="Hand">
+            @for (int i = 0; i < gameRunning.hands.ElementAt(userID).cards.Count; i++)
+            {
+                <CardView card=gameRunning.hands.ElementAt(userID).cards[i] index=@i active=@(gameRunning.AvailablePlays(userID)[i].Count > 0 && i != clickedCard && gameRunning.currentPlayerID == userID) OnClickCallback="@ChooseCard" clickable=@CanClickCard(i) clicked=@(i == clickedCard)/>
+            }    
+            </div>
+        }
+    }
+    @if (gameRunning.state != 1 && gameRunning.state != 0)
+    {
+        <p>Game state is @gameRunning.state</p>
+    }
+}
+
+@code {
+    [Parameter]
+    public string username { get; set; }
+    public int userID;
+    public bool active => userID == gameRunning.currentPlayerID;
+    private HubConnection? hubConnection;
+    public Badamsat.Game gameRunning;
+    public int? clickedCard;
+    public bool clicked = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+        .WithUrl(NavigationManager.ToAbsoluteUri("/chathub"))
+        .WithAutomaticReconnect()
+        .Build();
+
+
+        hubConnection.KeepAliveInterval = new System.TimeSpan(0, 2, 0);
+
+        hubConnection.On<string>("UpdateBoard", (encoded) =>
+        {
+            this.gameRunning = Badamsat.Game.Destringify(encoded);
+            StateHasChanged();
+        });
+
+        hubConnection.On<int>("SetID", (id) =>
+        {
+            this.userID = id;
+            StateHasChanged();
+        });
+
+        hubConnection.On("EndGame", (string winner) =>
+        {
+            NavigationManager.NavigateTo("gameend/" + winner);
+        });
+
+        await hubConnection.StartAsync();
+        await RequestID();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+
+    private async Task RequestID()
+    {
+        if (hubConnection is not null)
+            await hubConnection.SendAsync("RequestID", username);
+    }
+
+    private async Task StartGame(MouseEventArgs e)
+    {
+        if (hubConnection is not null)
+            await hubConnection.SendAsync("StartGame");
+    }
+
+    private void ChooseCard(int cardIndex)
+    {
+        clickedCard = cardIndex;
+        StateHasChanged();
+    }
+
+    private async Task ChoosePile(int pileIndex)
+    {
+        if (hubConnection is not null && userID == gameRunning.currentPlayerID)
+        {
+            await hubConnection.SendAsync("ChoosePlay", pileIndex, this.clickedCard, this.userID);
+            this.clickedCard = null;
+        }
+    }
+
+    private bool CanClickCard(int cardIndex)
+    {
+        return gameRunning.AvailablePlays(userID)[cardIndex].Count > 0;
+    }
+
+    private bool CanClickPile(int pileIndex, int? cardIndex)
+    {
+        if (cardIndex is not null)
+            return gameRunning.AvailablePlays(userID)[(int)cardIndex].Contains(pileIndex);
+        return false;
+    }
+
+    private async Task Pass()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("Pass");
+        }
+    }
+
+    private string PassButtonClass()
+    {
+        if (active)
+            return "passbutton active";
+        return "passbutton inactive";
+    }
+}

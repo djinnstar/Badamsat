@@ -1,0 +1,50 @@
+﻿<div class=@("pile " + @Activity()) @onclick="Click">
+    @if (pile.cards.Count == 0)
+    {
+        <div class="newpile">New Pile</div>
+    }
+    @if (pile.cards.Count > 0)
+    {
+        <CardView card=@pile.cards.First() />       
+    }    
+    @if (pile.cards.Count > 1)
+    {
+        <CardView card=@pile.cards.Last() />       
+    }
+</div> 
+
+
+@code {
+    [Parameter]
+    public Badamsat.Pile pile { get; set; }
+
+    [Parameter]
+    public bool active { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnClickCallback { get; set; }
+
+    [Parameter]
+    public bool clicked { get; set; }
+
+    [Parameter]
+    public int index { get; set; }
+
+    [Parameter]
+    public bool clickable { get; set; }
+
+    public string Activity()
+    {
+        if (clicked)
+            return "clicked";
+        if (active && !pile.complete)
+            return "active";
+        return "inactive";
+    }
+
+    public void Click()
+    {
+        if (clickable)
+            OnClickCallback.InvokeAsync(index);
+    }
+} 
