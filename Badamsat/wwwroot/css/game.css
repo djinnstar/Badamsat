@@ -1,8 +1,8 @@
 ﻿* {
     font-family: Georgia, serif;
     box-sizing: border-box;
-    --text: #03548d;
-    --background-color: #F4FFF4;
+    --text: #044472;
+    --background-color: #E1FFF9;
 }
 
 h1 {
@@ -97,6 +97,7 @@ input {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
+    background-color: #B0FFED;
 }
 
 .pile .card {

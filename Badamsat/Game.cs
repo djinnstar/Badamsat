@@ -182,7 +182,7 @@ namespace Badamsat
         public DateTime savedAt;
         public int numPlayers => usernames.Count;
 
-        private static string gameLocation = "game.xml";
+        private static string gameLocation = "wwwroot/game.xml";
 
         public Game(List<string> usernames, bool deal)
         {

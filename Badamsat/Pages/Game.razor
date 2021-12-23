@@ -68,6 +68,7 @@ else
     public Badamsat.Game gameRunning;
     public int? clickedCard;
     public bool clicked = false;
+    ElementReference audio;
 
     protected override async Task OnInitializedAsync()
     {
@@ -75,9 +76,6 @@ else
         .WithUrl(NavigationManager.ToAbsoluteUri("/chathub"))
         .WithAutomaticReconnect()
         .Build();
-
-
-        hubConnection.KeepAliveInterval = new System.TimeSpan(0, 2, 0);
 
         hubConnection.On<string>("UpdateBoard", (encoded) =>
         {
@@ -137,12 +135,12 @@ else
 
     private bool CanClickCard(int cardIndex)
     {
-        return gameRunning.AvailablePlays(userID)[cardIndex].Count > 0;
+        return gameRunning.AvailablePlays(userID)[cardIndex].Count > 0 && gameRunning.currentPlayerID == userID;
     }
 
     private bool CanClickPile(int pileIndex, int? cardIndex)
     {
-        if (cardIndex is not null)
+        if (cardIndex is not null && gameRunning.currentPlayerID == userID)
             return gameRunning.AvailablePlays(userID)[(int)cardIndex].Contains(pileIndex);
         return false;
     }
