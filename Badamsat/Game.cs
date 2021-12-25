@@ -35,7 +35,7 @@ namespace Badamsat
 
         public static int Compare(Card c1, Card c2)
         {
-            return c1.number - c2.number;
+            return c1.number - c2.number + 50 * (c1.suit - c2.suit);
         }
 
         public bool Equals(Card card2)
@@ -105,6 +105,11 @@ namespace Badamsat
             for (int i = currentPlayerID; i < deck.Count % cardsPerHand; i = (i + 1) % numPlayers)
                 hands[i].cards.Add(deck[numPlayers * cardsPerHand + i]);
             return hands;
+        }
+
+        public void Sort()
+        {
+            cards.Sort(Card.Compare);
         }
 
         public string Xml()
@@ -200,6 +205,8 @@ namespace Badamsat
                             break;
                         }
                 }
+                for (int i = 0; i < numPlayers; i++)
+                    this.hands[i].Sort();
             }
             else
             {
