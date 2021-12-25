@@ -52,6 +52,13 @@ namespace Badamsat
         {
             throw new NotImplementedException();
         }
+
+        public string PrettyString()
+        {
+            var suits = new List<string> { "Hearts", "Clubs", "Diamonds", "Spades" };
+            var numbers = new List<string> { "Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" };
+            return numbers[this.number - 1] + " of " + suits[this.suit - 1];
+        }
     }
 
     public class Hand
@@ -185,6 +192,8 @@ namespace Badamsat
         public int currentPlayerID;
         public int state;
         public DateTime savedAt;
+        public List<(int, Card)> mostRecentPlays;
+
         public int numPlayers => usernames.Count;
 
         private static string gameLocation = "wwwroot/game.xml";
@@ -214,6 +223,7 @@ namespace Badamsat
             }
             this.piles = new List<Pile>();
             state = 1;
+            this.mostRecentPlays = new();
             this.savedAt = DateTime.Now;
         }
 
@@ -224,6 +234,8 @@ namespace Badamsat
             stringified += "<CurrentPlayerID>" + currentPlayerID.ToString() + "</CurrentPlayerID>";
             stringified += "<State>" + state.ToString() + "</State>";
             stringified += "<SavedAt>" + this.savedAt.ToString() + "</SavedAt>";
+            foreach (var q in this.mostRecentPlays)
+                stringified += "<LastPlay>" + q.Item1.ToString() + " " + q.Item2.suit.ToString() + " " + q.Item2.number.ToString() + "</LastPlay>";
             foreach (var username in usernames)
                 stringified += "<Username>" + username + "</Username>";
             foreach (var hand in hands)
@@ -244,6 +256,7 @@ namespace Badamsat
             var tempPiles = new List<Pile>();
             var tempState = -1;
             var tempDate = new DateTime();
+            var tempMostRecentPlays = new List<(int, Card)>();
             for (int i = 0; i < xDoc.LastChild.ChildNodes.Count; i++)
             {
                 var element = xDoc.DocumentElement.ChildNodes.Item(i);
@@ -280,6 +293,11 @@ namespace Badamsat
                     tempState = Convert.ToInt32(element.InnerText);
                 if (element.Name == "SavedAt")
                     tempDate = Convert.ToDateTime(element.InnerText);
+                if (element.Name == "LastPlay")
+                {
+                    var splitted = element.InnerText.Split(" ");
+                    tempMostRecentPlays.Add((Convert.ToInt32(splitted[0]), new Card(Convert.ToInt32(splitted[1]), Convert.ToInt32(splitted[2]))));
+                }
             }
             Game newGame = new(tempUsernames, false);
             newGame.currentPlayerID = tempCurrentID;
@@ -287,6 +305,7 @@ namespace Badamsat
             newGame.piles = tempPiles;
             newGame.state = tempState;
             newGame.savedAt = tempDate;
+            newGame.mostRecentPlays = tempMostRecentPlays;
             return newGame;
         }
 
@@ -360,6 +379,9 @@ namespace Badamsat
 
         public bool Turn(int userIndex, int cardIndex, int pileIndex)
         {
+            this.mostRecentPlays.Add((userIndex, this.hands[userIndex].cards[cardIndex]));
+            if (this.mostRecentPlays.Count > numPlayers)
+                this.mostRecentPlays = this.mostRecentPlays.GetRange(this.mostRecentPlays.Count - numPlayers, numPlayers);
             if (pileIndex == this.piles.Count)
             {
                 this.MakePile(this.hands[userIndex].cards[cardIndex]);
@@ -375,6 +397,7 @@ namespace Badamsat
                 return true;
             }
             currentPlayerID = (currentPlayerID + 1) % this.numPlayers;
+            this.Save();
             return false;
         }
     }

@@ -1,0 +1,15 @@
+﻿<div class="piles">
+    <p class="MRP">Most Recent Plays: </p>
+@for (int i = 0; i < gameRunning.mostRecentPlays.Count; i++)
+{
+    <div class="LastPlaysHeader">
+        <div>@gameRunning.usernames[gameRunning.mostRecentPlays[gameRunning.mostRecentPlays.Count-i-1].Item1]</div>
+        <CardView card=gameRunning.mostRecentPlays[gameRunning.mostRecentPlays.Count-i-1].Item2 clickable=@false active=@false index=@(-1) clicked=@false></CardView> 
+    </div>
+}
+</div>
+
+@code {
+    [Parameter]
+    public Badamsat.Game gameRunning { get; set; }
+}
