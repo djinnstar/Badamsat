@@ -48,13 +48,13 @@ namespace BlazorServerSignalRApp.Server.Hubs
             if (game.state == 2)
             {
                 await Clients.All.EndGame(game.usernames[userID]);
-                game.Delete();
             }
         }
 
         public async Task Pass()
         {
             var game = Badamsat.Game.LoadOrCreate();
+            game.mostRecentPlays.Add((game.currentPlayerID, null));
             game.currentPlayerID = (game.currentPlayerID + 1) % game.numPlayers;
             game.Save();
             await Clients.All.UpdateBoard(game.Stringify());

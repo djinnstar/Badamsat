@@ -4,7 +4,14 @@
 {
     <div class="LastPlaysHeader">
         <div>@gameRunning.usernames[gameRunning.mostRecentPlays[gameRunning.mostRecentPlays.Count-i-1].Item1]</div>
-        <CardView card=gameRunning.mostRecentPlays[gameRunning.mostRecentPlays.Count-i-1].Item2 clickable=@false active=@false index=@(-1) clicked=@false></CardView> 
+        @if (gameRunning.mostRecentPlays[gameRunning.mostRecentPlays.Count-i-1].Item2 is null)
+        {
+                <div>PASS</div>
+        }
+        else 
+        {
+            <CardView card=gameRunning.mostRecentPlays[gameRunning.mostRecentPlays.Count-i-1].Item2 clickable=@false active=@false index=@(-1) clicked=@false></CardView> 
+        }
     </div>
 }
 </div>

@@ -1,13 +1,23 @@
-﻿@page "/gameend/{winner}"
+﻿@page "/gameend"
 @inject NavigationManager NavigationManager
 
 <PageTitle>Badam Sat!</PageTitle>
 <h3>Winner: @winner</h3>
 <button @onclick="NewGame">Play again?</button>
+@for (int i = 0; i < game.hands.Count; i++)
+{
+    <p>@(game.usernames[i] + " : " + game.hands[i].cards.Count)</p>
+}
 
 @code {
-    [Parameter]
     public string winner { get; set; }
+    public Badamsat.Game game;
+
+    public void Blah()
+    {
+        var game = Badamsat.Game.LoadOrCreate();
+        winner = game.usernames[game.currentPlayerID];
+    }
 
     public void NewGame()
     {

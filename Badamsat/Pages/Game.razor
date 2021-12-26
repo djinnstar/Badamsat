@@ -38,10 +38,13 @@ else
         {
             <PileView pile=gameRunning.piles[i] active=@(clickedCard is not null && gameRunning.AvailablePlays(userID)[(int)clickedCard].Contains(i)) index=@i OnClickCallback="@ChoosePile" clickable=@CanClickPile(i, clickedCard) clicked=@false/>
         }
-        <PileView pile=@(new Badamsat.Pile()) active=@(clickedCard is not null && gameRunning.AvailablePlays(userID)[(int)clickedCard].Contains(gameRunning.piles.Count)) index=@(gameRunning.piles.Count) OnClickCallback="@ChoosePile" clickable=@CanClickPile(gameRunning.piles.Count, clickedCard) clicked=@false/>
+        @if (gameRunning.piles.Count < ((gameRunning.numPlayers - 1) / 4 + 1) * 4)
+        {
+            <PileView pile=@(new Badamsat.Pile()) active=@(clickedCard is not null && gameRunning.AvailablePlays(userID)[(int)clickedCard].Contains(gameRunning.piles.Count)) index=@(gameRunning.piles.Count) OnClickCallback="@ChoosePile" clickable=@CanClickPile(gameRunning.piles.Count, clickedCard) clicked=@false/>
+        }
         @if (active && !gameRunning.HasPlays(this.userID))
         {
-            <button class=@PassButtonClass() @onclick="Pass">Pass</button>
+            <button class=@PassButtonClass() @onclick="Pass">@RandomPass(gameRunning)</button>
         }
         </div>
         <div class="straightline"></div>
@@ -162,5 +165,18 @@ else
         if (active)
             return "passbutton active";
         return "passbutton inactive";
+    }
+
+    private string RandomPass(Badamsat.Game inGame)
+    {
+        var possiblePhrases = new List<string>
+        {
+            "I implore you to pass",
+            "Piss my pass",
+            "Pass",
+            "Half passt nine",
+            "You shall not not pass!"
+        };
+        return possiblePhrases[new Random().Next(possiblePhrases.Count)];
     }
 }

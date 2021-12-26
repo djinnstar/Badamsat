@@ -77,7 +77,7 @@ namespace Badamsat
 
         public static List<Hand> DealHands(int numPlayers)
         {
-            int numDecks = numPlayers / 4 + 1;
+            int numDecks = (numPlayers - 1) / 4 + 1;
             List<Card> deck = new List<Card>();
             foreach (var suit in Card.possibleSuits)
                 foreach (var number in Card.possibleNumbers)
@@ -192,7 +192,7 @@ namespace Badamsat
         public int currentPlayerID;
         public int state;
         public DateTime savedAt;
-        public List<(int, Card)> mostRecentPlays;
+        public List<(int, Card?)> mostRecentPlays;
 
         public int numPlayers => usernames.Count;
 
