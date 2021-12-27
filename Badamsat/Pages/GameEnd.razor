@@ -1,26 +1,57 @@
 ﻿@page "/gameend"
 @inject NavigationManager NavigationManager
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NavigationManager
+@using Badamsat
+@implements IAsyncDisposable
+@using System;
 
 <PageTitle>Badam Sat!</PageTitle>
-<h3>Winner: @winner</h3>
-<button @onclick="NewGame">Play again?</button>
-@for (int i = 0; i < game.hands.Count; i++)
+@if (game is not null)
 {
-    <p>@(game.usernames[i] + " : " + game.hands[i].cards.Count)</p>
+    <h3>Winner: @game.usernames[game.currentPlayerID]</h3>
+    <h2>Ending Scores:</h2>
+    @for (int i = 0; i < game.hands.Count; i++)
+    {
+        <div class="waitingusername">@(game.usernames[i] + " : " + game.hands[i].cards.Count)</div>
+    }   
+    <button class="startbutton" @onclick="NewGame">Play again?</button>
 }
 
-@code {
-    public string winner { get; set; }
-    public Badamsat.Game game;
 
-    public void Blah()
-    {
-        var game = Badamsat.Game.LoadOrCreate();
-        winner = game.usernames[game.currentPlayerID];
-    }
+@code {
+    public Badamsat.Game? game;
+    public HubConnection hubConnection;
 
     public void NewGame()
     {
         NavigationManager.NavigateTo("");
     }
+
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+        .WithUrl(NavigationManager.ToAbsoluteUri("/chathub"))
+        .WithAutomaticReconnect()
+        .Build();
+
+        hubConnection.On<string>("UpdateBoard", (encoded) =>
+        {
+            this.game = Badamsat.Game.Destringify(encoded);
+            StateHasChanged();
+        });
+
+        await hubConnection.StartAsync();
+        if (hubConnection is not null)
+            await hubConnection.SendAsync("GetEndGame");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+
 }

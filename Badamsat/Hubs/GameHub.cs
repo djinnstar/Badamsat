@@ -59,5 +59,11 @@ namespace BlazorServerSignalRApp.Server.Hubs
             game.Save();
             await Clients.All.UpdateBoard(game.Stringify());
         }
+
+        public async Task GetEndGame()
+        {
+            var game = Badamsat.Game.LoadOrCreate();
+            await Clients.Caller.UpdateBoard(game.Stringify());
+        }
     }
 }

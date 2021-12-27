@@ -98,7 +98,7 @@ else
 
         hubConnection.On("EndGame", (string winner) =>
         {
-            NavigationManager.NavigateTo("gameend/" + winner);
+            NavigationManager.NavigateTo("gameend/");
         });
 
         await hubConnection.StartAsync();
