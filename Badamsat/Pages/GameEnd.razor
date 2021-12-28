@@ -9,7 +9,7 @@
 <PageTitle>Badam Sat!</PageTitle>
 @if (game is not null)
 {
-    <h1>Winner : @game.usernames[game.currentPlayerID]</h1>
+    <h1>@game.usernames[game.currentPlayerID]</h1>
     <h2>Ending Scores</h2>
     @for (int i = 0; i < game.hands.Count; i++)
     {
