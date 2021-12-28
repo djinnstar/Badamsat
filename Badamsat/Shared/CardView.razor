@@ -1,7 +1,7 @@
-﻿<span class=@("card " + Activity()) @onclick="Click">
-    <span class="number">@RenderNumber()</span>
-    <img src=@RenderSuit() alt=@RenderSuit()/>
-</span>
+﻿<div class=@("card " + Activity()) @onclick="Click">
+    <div class="number">@RenderNumber()</div>
+    <img src=@RenderSuit() alt=@RenderSuit() width="40"/>
+</div>
 
 @code {
     [Parameter]

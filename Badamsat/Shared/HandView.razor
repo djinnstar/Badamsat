@@ -1,4 +1,4 @@
-﻿<h3 class=@Activity()>@username : @hand.cards.Count</h3>
+﻿<div class=@Activity()>@username : @hand.cards.Count</div>
 
 
 @code {
@@ -11,10 +11,16 @@
     [Parameter]
     public string username { get; set; }
 
+    [Parameter]
+    public bool isMain { get; set; }
+
     public string Activity()
     {
+        var rstring = "player";
         if (active)
-            return "player active";
-        return "player inactive";
+            rstring += " active";
+        if (!isMain)
+            rstring += " not-main";
+        return rstring;
     }
 }

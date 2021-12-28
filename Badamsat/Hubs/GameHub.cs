@@ -57,6 +57,8 @@ namespace BlazorServerSignalRApp.Server.Hubs
             game.mostRecentPlays.Add((game.currentPlayerID, null));
             game.currentPlayerID = (game.currentPlayerID + 1) % game.numPlayers;
             game.Save();
+            if (game.mostRecentPlays.Count > game.numPlayers)
+                game.mostRecentPlays = game.mostRecentPlays.GetRange(game.mostRecentPlays.Count - game.numPlayers, game.numPlayers);
             await Clients.All.UpdateBoard(game.Stringify());
         }
 

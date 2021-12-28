@@ -9,8 +9,8 @@
 <PageTitle>Badam Sat!</PageTitle>
 @if (game is not null)
 {
-    <h3>Winner: @game.usernames[game.currentPlayerID]</h3>
-    <h2>Ending Scores:</h2>
+    <h1>Winner : @game.usernames[game.currentPlayerID]</h1>
+    <h2>Ending Scores</h2>
     @for (int i = 0; i < game.hands.Count; i++)
     {
         <div class="waitingusername">@(game.usernames[i] + " : " + game.hands[i].cards.Count)</div>
@@ -53,5 +53,4 @@
             await hubConnection.DisposeAsync();
         }
     }
-
 }

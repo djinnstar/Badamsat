@@ -7,11 +7,7 @@
 
 <PageTitle>Badam Sat!</PageTitle>
 
-@if (gameRunning is null)
-{
-    <p>game is null</p>
-}
-else 
+@if (gameRunning is not null)
 {
     @if (gameRunning.state == 0)
     {
@@ -20,27 +16,51 @@ else
     @if (gameRunning.state == 1)
     {
         <div class="playertab">
-            <HandView hand=gameRunning.hands[userID] active=@(gameRunning.currentPlayerID == userID) username=@gameRunning.usernames[userID]></HandView>
+            <HandView 
+                hand=gameRunning.hands[userID] 
+                isMain=@true
+                active=@(gameRunning.currentPlayerID == userID) 
+                username=@gameRunning.usernames[userID] />
         </div>
         <div class="playertab">
         @for (int i = userID + 1; i < gameRunning.hands.Count; i++)
         {
-            <HandView hand=gameRunning.hands[i] active=@(i == gameRunning.currentPlayerID) username=@gameRunning.usernames[i]/>
+            <HandView 
+                hand=gameRunning.hands[i] 
+                isMain=@false
+                active=@(i == gameRunning.currentPlayerID) 
+                username=@gameRunning.usernames[i]/>
         }
         @for (int i = 0; i < userID; i++)
         {
-            <HandView hand=gameRunning.hands[i] active=@(i == gameRunning.currentPlayerID) username=@gameRunning.usernames[i]/>
+            <HandView 
+                hand=gameRunning.hands[i] 
+                isMain=@false
+                active=@(i == gameRunning.currentPlayerID) 
+                username=@gameRunning.usernames[i]/>
         }
         </div>
         <div class="straightline"></div>
         <div class="piles">
         @for (int i = 0; i < gameRunning.piles.Count; i++)
         {
-            <PileView pile=gameRunning.piles[i] active=@(clickedCard is not null && gameRunning.AvailablePlays(userID)[(int)clickedCard].Contains(i)) index=@i OnClickCallback="@ChoosePile" clickable=@CanClickPile(i, clickedCard) clicked=@false/>
+            <PileView 
+                pile=gameRunning.piles[i] 
+                active=@(clickedCard is not null && gameRunning.AvailablePlays(userID)[(int)clickedCard].Contains(i)) 
+                index=@i 
+                OnClickCallback="@ChoosePile" 
+                clickable=@CanClickPile(i, clickedCard) 
+                clicked=@false/>
         }
         @if (gameRunning.piles.Count < ((gameRunning.numPlayers - 1) / 4 + 1) * 4)
         {
-            <PileView pile=@(new Badamsat.Pile()) active=@(clickedCard is not null && gameRunning.AvailablePlays(userID)[(int)clickedCard].Contains(gameRunning.piles.Count)) index=@(gameRunning.piles.Count) OnClickCallback="@ChoosePile" clickable=@CanClickPile(gameRunning.piles.Count, clickedCard) clicked=@false/>
+            <PileView 
+                pile=@(new Badamsat.Pile()) 
+                active=@(clickedCard is not null && gameRunning.AvailablePlays(userID)[(int)clickedCard].Contains(gameRunning.piles.Count)) 
+                index=@(gameRunning.piles.Count) 
+                OnClickCallback="@ChoosePile" 
+                clickable=@CanClickPile(gameRunning.piles.Count, clickedCard) 
+                clicked=@false/>
         }
         @if (active && !gameRunning.HasPlays(this.userID))
         {
@@ -53,16 +73,18 @@ else
             <div class="Hand">
             @for (int i = 0; i < gameRunning.hands.ElementAt(userID).cards.Count; i++)
             {
-                <CardView card=gameRunning.hands.ElementAt(userID).cards[i] index=@i active=@(gameRunning.AvailablePlays(userID)[i].Count > 0 && i != clickedCard && gameRunning.currentPlayerID == userID) OnClickCallback="@ChooseCard" clickable=@CanClickCard(i) clicked=@(i == clickedCard)/>
+                <CardView 
+                    card=gameRunning.hands.ElementAt(userID).cards[i] 
+                    index=@i 
+                    active=@(gameRunning.AvailablePlays(userID)[i].Count > 0 && i != clickedCard && gameRunning.currentPlayerID == userID) 
+                    OnClickCallback="@ChooseCard" 
+                    clickable=@CanClickCard(i) 
+                    clicked=@(i == clickedCard)/>
             }    
             </div>
         }
         <div class="straightline"></div>
-        <LastPlays gameRunning=gameRunning></LastPlays>
-    }
-    @if (gameRunning.state != 1 && gameRunning.state != 0)
-    {
-        <p>Game state is @gameRunning.state</p>
+        <LastPlays gameRunning=gameRunning />
     }
 }
 

@@ -235,7 +235,13 @@ namespace Badamsat
             stringified += "<State>" + state.ToString() + "</State>";
             stringified += "<SavedAt>" + this.savedAt.ToString() + "</SavedAt>";
             foreach (var q in this.mostRecentPlays)
-                stringified += "<LastPlay>" + q.Item1.ToString() + " " + q.Item2.suit.ToString() + " " + q.Item2.number.ToString() + "</LastPlay>";
+            {
+                stringified += "<LastPlay>" + q.Item1.ToString();
+                if (q.Item2 != null)
+                    stringified += " " + q.Item2.suit.ToString() + " " + q.Item2.number.ToString() + "</LastPlay>";
+                else
+                    stringified += " PASS</LastPlay>";
+            }
             foreach (var username in usernames)
                 stringified += "<Username>" + username + "</Username>";
             foreach (var hand in hands)
@@ -256,7 +262,7 @@ namespace Badamsat
             var tempPiles = new List<Pile>();
             var tempState = -1;
             var tempDate = new DateTime();
-            var tempMostRecentPlays = new List<(int, Card)>();
+            var tempMostRecentPlays = new List<(int, Card?)>();
             for (int i = 0; i < xDoc.LastChild.ChildNodes.Count; i++)
             {
                 var element = xDoc.DocumentElement.ChildNodes.Item(i);
@@ -296,7 +302,10 @@ namespace Badamsat
                 if (element.Name == "LastPlay")
                 {
                     var splitted = element.InnerText.Split(" ");
-                    tempMostRecentPlays.Add((Convert.ToInt32(splitted[0]), new Card(Convert.ToInt32(splitted[1]), Convert.ToInt32(splitted[2]))));
+                    if (splitted.Length == 3)
+                        tempMostRecentPlays.Add((Convert.ToInt32(splitted[0]), new Card(Convert.ToInt32(splitted[1]), Convert.ToInt32(splitted[2]))));
+                    else
+                        tempMostRecentPlays.Add((Convert.ToInt32(splitted[0]), null));
                 }
             }
             Game newGame = new(tempUsernames, false);
