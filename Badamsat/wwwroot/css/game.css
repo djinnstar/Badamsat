@@ -72,7 +72,7 @@ input {
     padding-top: 15px;
     overflow: auto;
     text-align: center;
-    font-size: 32px;
+    font-size: 2em;
     background-color: white
 }
 
@@ -87,8 +87,8 @@ input {
 }
 
 .clicked {
-    border: 5px solid #03548d;
-    background-color: rgb(255, 250, 200);
+    border: solid #03548d;
+    background-color: rgb(255, 247, 170);
 }
 
 .pile {
