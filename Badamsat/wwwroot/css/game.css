@@ -88,13 +88,13 @@ input {
 
 .clicked {
     border: solid #03548d;
-    background-color: rgb(255, 247, 170);
+    background-color: #CAE6F7
 }
 
 .pile {
     margin: 10px auto;
     border: solid rgb(174, 174, 174);
-    background-color: #D9F1FF;
+    background-color: #CBE3F1;
     width: fit-content;
     min-height: 127px;
     min-width: 93px;
@@ -106,19 +106,19 @@ input {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    background-color: #C5F7ED;
+    background-color: #B8D1CC;
 }
 
 .pile .card {
 }
 
 .pile.active {
-    background-color: rgb(255, 250, 200);
+    background-color: rgb(255, 244, 133);
     cursor: pointer;
 }
 
 .card.active {
-    background-color: rgb(255, 250, 200);
+    background-color: rgb(255, 244, 133);
     cursor: pointer;
 }
 

@@ -83,18 +83,8 @@ namespace Badamsat
                 foreach (var number in Card.possibleNumbers)
                     for (int i = 0; i < numDecks; i++)
                         deck.Add(new Card(suit, number));
-            int currentIndex = deck.Count;
-            int randomIndex;
             var r = new Random();
-            while (currentIndex > 0)
-            {
-                currentIndex--;
-                randomIndex = r.Next(currentIndex + 1);
-                var value = deck[randomIndex];
-                deck[randomIndex] = deck[currentIndex];
-                deck[currentIndex] = value;
-            }
-            
+            deck = deck.OrderBy(item => r.Next()).ToList();
             List<Hand> hands = new List<Hand>();
             int cardsPerHand = deck.Count / numPlayers;
             for (int i = 0; i < numPlayers; i++)
@@ -109,8 +99,8 @@ namespace Badamsat
                 }
             if (currentPlayerID == -1)
                 return DealHands(numPlayers);
-            for (int i = currentPlayerID; i < deck.Count % cardsPerHand; i = (i + 1) % numPlayers)
-                hands[i].cards.Add(deck[numPlayers * cardsPerHand + i]);
+            for (int i = 0; i < deck.Count % cardsPerHand; i++)
+                hands[(currentPlayerID + i) % numPlayers].cards.Add(deck[numPlayers * cardsPerHand + i]);
             return hands;
         }
 
@@ -396,6 +386,11 @@ namespace Badamsat
                 this.MakePile(this.hands[userIndex].cards[cardIndex]);
                 this.currentPlayerID = (currentPlayerID + 1) % this.numPlayers;
                 this.hands[userIndex].Remove(cardIndex);
+                if (this.hands[userIndex].cards.Count == 0)
+                {
+                    state = 2;
+                    return true;
+                }
                 return false;
             }
             this.piles[pileIndex].Add(this.hands[userIndex].cards[cardIndex], false);
