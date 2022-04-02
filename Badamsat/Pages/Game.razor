@@ -9,17 +9,17 @@
 
 @if (gameRunning is not null)
 {
-    @if (gameRunning.state == 0)
+    @if (gameRunning.state == Badamsat.Game.State.GettingPlayers)
     {
         <Waiting userID=@userID usernames=@gameRunning.usernames e="@StartGame"></Waiting>
     }
-    @if (gameRunning.state == 1)
+    @if (gameRunning.state == Badamsat.Game.State.Running)
     {
         <div class="playertab">
             <HandView 
                 hand=gameRunning.hands[userID] 
                 isMain=@true
-                active=@(gameRunning.currentPlayerID == userID) 
+                active=@(gameRunning.currentPlayerNum == userID) 
                 username=@gameRunning.usernames[userID] />
         </div>
         <div class="playertab">
@@ -28,7 +28,7 @@
             <HandView 
                 hand=gameRunning.hands[i] 
                 isMain=@false
-                active=@(i == gameRunning.currentPlayerID) 
+                active=@(i == gameRunning.currentPlayerNum) 
                 username=@gameRunning.usernames[i]/>
         }
         @for (int i = 0; i < userID; i++)
@@ -36,7 +36,7 @@
             <HandView 
                 hand=gameRunning.hands[i] 
                 isMain=@false
-                active=@(i == gameRunning.currentPlayerID) 
+                active=@(i == gameRunning.currentPlayerNum) 
                 username=@gameRunning.usernames[i]/>
         }
         </div>
@@ -76,7 +76,7 @@
                 <CardView 
                     card=gameRunning.hands.ElementAt(userID).cards[i] 
                     index=@i 
-                    active=@(gameRunning.AvailablePlays(userID)[i].Count > 0 && i != clickedCard && gameRunning.currentPlayerID == userID) 
+                    active=@(gameRunning.AvailablePlays(userID)[i].Count > 0 && i != clickedCard && gameRunning.currentPlayerNum == userID) 
                     OnClickCallback="@ChooseCard" 
                     clickable=@CanClickCard(i) 
                     clicked=@(i == clickedCard)/>
@@ -91,13 +91,12 @@
 @code {
     [Parameter]
     public string username { get; set; }
-    public int userID;
-    public bool active => userID == gameRunning.currentPlayerID;
+    public int userID => gameRunning.usernames.IndexOf(username);
+    public bool active => userID == gameRunning.currentPlayerNum;
     private HubConnection? hubConnection;
     public Badamsat.Game gameRunning;
     public int? clickedCard;
     public bool clicked = false;
-    ElementReference audio;
 
     protected override async Task OnInitializedAsync()
     {
@@ -112,19 +111,13 @@
             StateHasChanged();
         });
 
-        hubConnection.On<int>("SetID", (id) =>
-        {
-            this.userID = id;
-            StateHasChanged();
-        });
-
         hubConnection.On("EndGame", (string winner) =>
         {
             NavigationManager.NavigateTo("gameend/");
         });
 
         await hubConnection.StartAsync();
-        await RequestID();
+        await hubConnection.SendAsync("JoinGame", username);
     }
 
     public async ValueTask DisposeAsync()
@@ -133,12 +126,6 @@
         {
             await hubConnection.DisposeAsync();
         }
-    }
-
-    private async Task RequestID()
-    {
-        if (hubConnection is not null)
-            await hubConnection.SendAsync("RequestID", username);
     }
 
     private async Task StartGame(MouseEventArgs e)
@@ -155,7 +142,7 @@
 
     private async Task ChoosePile(int pileIndex)
     {
-        if (hubConnection is not null && userID == gameRunning.currentPlayerID)
+        if (hubConnection is not null && userID == gameRunning.currentPlayerNum)
         {
             await hubConnection.SendAsync("ChoosePlay", pileIndex, this.clickedCard, this.userID);
             this.clickedCard = null;
@@ -164,12 +151,12 @@
 
     private bool CanClickCard(int cardIndex)
     {
-        return gameRunning.AvailablePlays(userID)[cardIndex].Count > 0 && gameRunning.currentPlayerID == userID;
+        return gameRunning.AvailablePlays(userID)[cardIndex].Count > 0 && gameRunning.currentPlayerNum == userID;
     }
 
     private bool CanClickPile(int pileIndex, int? cardIndex)
     {
-        if (cardIndex is not null && gameRunning.currentPlayerID == userID)
+        if (cardIndex is not null && gameRunning.currentPlayerNum == userID)
             return gameRunning.AvailablePlays(userID)[(int)cardIndex].Contains(pileIndex);
         return false;
     }

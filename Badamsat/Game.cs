@@ -179,28 +179,33 @@ namespace Badamsat
         public List<Pile> piles;
         public List<Hand> hands;
         public List<string> usernames;
-        public int currentPlayerID;
-        public int state;
+        public List<string> connectionIDs;
+        public int currentPlayerNum;
+        public State state;
         public DateTime savedAt;
         public List<(int, Card?)> mostRecentPlays;
+
+        public enum State { GettingPlayers, Running, Completed };
 
         public int numPlayers => usernames.Count;
 
         private static string gameLocation = "wwwroot/game.xml";
 
-        public Game(List<string> usernames, bool deal)
+        public Game(List<string> usernames, List<string> connectionIDs, bool deal)
         {
             this.usernames = usernames;
+            this.connectionIDs = connectionIDs;
             if (deal)
             {
-                currentPlayerID = -1;
-                while (currentPlayerID == -1)
+                state = State.Running;
+                currentPlayerNum = -1;
+                while (currentPlayerNum == -1)
                 {
                     this.hands = Hand.DealHands(numPlayers);
                     for (int i = 0; i < numPlayers; i++)
                         if (this.hands[i].cards.Contains(Card.h7))
                         {
-                            currentPlayerID = i;
+                            currentPlayerNum = i;
                             break;
                         }
                 }
@@ -210,9 +215,9 @@ namespace Badamsat
             else
             {
                 this.hands = new List<Hand>();
+                state = State.GettingPlayers;
             }
             this.piles = new List<Pile>();
-            state = 1;
             this.mostRecentPlays = new();
             this.savedAt = DateTime.Now;
         }
@@ -221,7 +226,7 @@ namespace Badamsat
         {
             string stringified = "<?xml version = \"1.0\" encoding = \"utf-8\" ?>";
             stringified += "<Game>";
-            stringified += "<CurrentPlayerID>" + currentPlayerID.ToString() + "</CurrentPlayerID>";
+            stringified += "<CurrentPlayerID>" + currentPlayerNum.ToString() + "</CurrentPlayerID>";
             stringified += "<State>" + state.ToString() + "</State>";
             stringified += "<SavedAt>" + this.savedAt.ToString() + "</SavedAt>";
             foreach (var q in this.mostRecentPlays)
@@ -234,6 +239,8 @@ namespace Badamsat
             }
             foreach (var username in usernames)
                 stringified += "<Username>" + username + "</Username>";
+            foreach (var connectionID in connectionIDs)
+                stringified += "<ConnectionID>" + connectionID + "</ConnectionID>";
             foreach (var hand in hands)
                 stringified += hand.Xml();
             foreach (var pile in piles)
@@ -250,9 +257,10 @@ namespace Badamsat
             int tempCurrentID = -1;
             var tempHands = new List<Hand>();
             var tempPiles = new List<Pile>();
-            var tempState = -1;
+            var tempState = State.GettingPlayers;
             var tempDate = new DateTime();
             var tempMostRecentPlays = new List<(int, Card?)>();
+            var tempConnectionIDs = new List<string>();
             for (int i = 0; i < xDoc.LastChild.ChildNodes.Count; i++)
             {
                 var element = xDoc.DocumentElement.ChildNodes.Item(i);
@@ -281,12 +289,16 @@ namespace Badamsat
                 {
                     tempUsernames.Add(element.InnerText);
                 }
+                if (element.Name == "ConnectionID")
+                {
+                    tempConnectionIDs.Add(element.InnerText);
+                }
                 if (element.Name == "CurrentPlayerID")
                 {
                     tempCurrentID = Convert.ToInt32(element.InnerText);
                 }
                 if (element.Name == "State")
-                    tempState = Convert.ToInt32(element.InnerText);
+                    tempState = (State)Enum.Parse(typeof(State), element.InnerText);
                 if (element.Name == "SavedAt")
                     tempDate = Convert.ToDateTime(element.InnerText);
                 if (element.Name == "LastPlay")
@@ -298,8 +310,8 @@ namespace Badamsat
                         tempMostRecentPlays.Add((Convert.ToInt32(splitted[0]), null));
                 }
             }
-            Game newGame = new(tempUsernames, false);
-            newGame.currentPlayerID = tempCurrentID;
+            Game newGame = new(tempUsernames, tempConnectionIDs, false);
+            newGame.currentPlayerNum = tempCurrentID;
             newGame.hands = tempHands;
             newGame.piles = tempPiles;
             newGame.state = tempState;
@@ -317,16 +329,14 @@ namespace Badamsat
         {
             if (!File.Exists(gameLocation))
             {
-                var newgame = new Game(new List<string>(), false);
-                newgame.state = 0;
+                var newgame = new Game(new List<string>(), new List<string>(), false);
                 newgame.Save();
                 return newgame;
             }
             var g = Destringify(File.ReadAllText(gameLocation));
             if ((DateTime.Now - g.savedAt).TotalMinutes > 30)
             {
-                g = new Game(new List<string>(), false);
-                g.state = 0;
+                g = new Game(new List<string>(), new List<string>(), false);
                 g.Save();
             }
             return g;
@@ -384,11 +394,11 @@ namespace Badamsat
             if (pileIndex == this.piles.Count)
             {
                 this.MakePile(this.hands[userIndex].cards[cardIndex]);
-                this.currentPlayerID = (currentPlayerID + 1) % this.numPlayers;
+                this.currentPlayerNum = (currentPlayerNum + 1) % this.numPlayers;
                 this.hands[userIndex].Remove(cardIndex);
                 if (this.hands[userIndex].cards.Count == 0)
                 {
-                    state = 2;
+                    state = State.Completed;
                     return true;
                 }
                 return false;
@@ -397,10 +407,10 @@ namespace Badamsat
             this.hands[userIndex].Remove(cardIndex);
             if (this.hands[userIndex].cards.Count == 0)
             {
-                state = 2;
+                state = State.Completed;
                 return true;
             }
-            currentPlayerID = (currentPlayerID + 1) % this.numPlayers;
+            currentPlayerNum = (currentPlayerNum + 1) % this.numPlayers;
             this.Save();
             return false;
         }

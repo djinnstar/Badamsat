@@ -10,6 +10,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddSignalR(options =>
+{
+    options.KeepAliveInterval = new TimeSpan(0, 0, 1);
+});
 builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddResponseCompression(opts =>
 {
@@ -40,6 +44,7 @@ app.UseRouting();
 
 app.MapBlazorHub();
 app.MapHub<GameHub>("/chathub");
+app.MapHub<WelcomeHub>("/welcomehub");
 app.MapFallbackToPage("/_Host");
 
 app.Run();

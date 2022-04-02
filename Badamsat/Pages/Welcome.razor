@@ -1,33 +1,103 @@
 ﻿@page "/"
-@inject NavigationManager NavigationManager
 @using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NavigationManager
+@using Badamsat
+@implements IAsyncDisposable
+@using System;
 
 <PageTitle>Badam Sat!</PageTitle>
 <link href="~/css/game.css" rel="stylesheet" />
-<h1>Badam Sat!</h1>
-<div>
-    <p>Name</p>
-    <label for="name"></label><input @bind="name" @onkeyup="Send" type="text" id="name">
-</div>
+@if (code != Code.Undefined)
+{
+    <h1>Badam Sat!</h1>
+    <div>
+        @if (code != Code.GameRunning)
+        {
+            <p>Name</p>
+            <label for="name"></label><input @bind="name" @onkeyup="Send" type="text" id="name">
+            @if (code == Code.DuplicateName)
+            {
+                <p>Name taken! Please use another!</p>
+            }        
+        }
+        @if (code == Code.GameRunning && usernames.Count == 0)
+        {
+            <p>The game is already running, and everyone's connected!</p>
+        }
+         @if (code == Code.GameRunning && usernames.Count != 0)
+        {
+            <h3>Game is already running! Please choose an unclaimed name:</h3>
+            @foreach (string username in usernames)
+            {
+                <a href=@("game/" + username)>@username</a>
+            }
+        }
+    </div>   
+}
+
 
 @code 
 {
     public string? name;
+    public enum Code { Good, DuplicateName, GameRunning, Undefined}
+    public Code code;
+    private HubConnection? hubConnection;
+    public List<string> usernames;
 
     protected override async Task OnInitializedAsync()
     {
-        HubConnection hubConnection = new HubConnectionBuilder()
-        .WithUrl(NavigationManager.ToAbsoluteUri("/chathub"))
+        code = Code.Undefined;
+        hubConnection = new HubConnectionBuilder()
+        .WithUrl(NavigationManager.ToAbsoluteUri("/welcomehub"))
         .Build();
 
+        hubConnection.On("GoToGame", () =>
+        {
+            NavigationManager.NavigateTo("game/" + name);
+        });
+
+        hubConnection.On("RaiseError", () => 
+        {
+            code = Code.DuplicateName;
+            StateHasChanged();
+        });
+
+        hubConnection.On("ConfirmRunning", (List<string> usernames) =>
+        {
+            code = Code.GameRunning;
+            this.usernames = usernames;
+            StateHasChanged();
+        });
+
+        hubConnection.On("ConfirmNotRunning", () =>
+        {
+            code = Code.Good;
+            StateHasChanged();
+        });
+
+        code = Code.Good;
         await hubConnection.StartAsync();
+        await hubConnection.SendAsync("CheckGameState");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+
+    private void ChooseExistingUsername(MouseEventArgs e)
+    {
     }
 
     private void Send(KeyboardEventArgs e)
     {
         if (e.Code == "Enter" && name != "")
         {
-            NavigationManager.NavigateTo("game/" + name);
+            if (hubConnection is not null)
+                hubConnection.SendAsync("CanJoinGame", name);
         }
     }
 }
