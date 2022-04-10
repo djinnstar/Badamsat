@@ -75,9 +75,8 @@ namespace Badamsat
             cards.RemoveAt(cardIndex);
         }
 
-        public static List<Hand> DealHands(int numPlayers)
+        public static List<Hand> DealHands(int numPlayers, int numDecks)
         {
-            int numDecks = (numPlayers - 1) / 4 + 1;
             List<Card> deck = new List<Card>();
             foreach (var suit in Card.possibleSuits)
                 foreach (var number in Card.possibleNumbers)
@@ -97,8 +96,6 @@ namespace Badamsat
                     currentPlayerID = i;
                     break;
                 }
-            if (currentPlayerID == -1)
-                return DealHands(numPlayers);
             for (int i = 0; i < deck.Count % cardsPerHand; i++)
                 hands[(currentPlayerID + i) % numPlayers].cards.Add(deck[numPlayers * cardsPerHand + i]);
             return hands;
@@ -184,6 +181,7 @@ namespace Badamsat
         public State state;
         public DateTime savedAt;
         public List<(int, Card?)> mostRecentPlays;
+        public int numDecks;
 
         public enum State { GettingPlayers, Running, Completed };
 
@@ -193,15 +191,17 @@ namespace Badamsat
 
         public Game(List<string> usernames, List<string> connectionIDs, bool deal)
         {
+
             this.usernames = usernames;
             this.connectionIDs = connectionIDs;
+            numDecks = numPlayers / 4 + 1;
             if (deal)
             {
                 state = State.Running;
                 currentPlayerNum = -1;
                 while (currentPlayerNum == -1)
                 {
-                    this.hands = Hand.DealHands(numPlayers);
+                    this.hands = Hand.DealHands(numPlayers, numDecks);
                     for (int i = 0; i < numPlayers; i++)
                         if (this.hands[i].cards.Contains(Card.h7))
                         {

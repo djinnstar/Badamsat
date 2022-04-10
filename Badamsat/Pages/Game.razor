@@ -52,7 +52,7 @@
                 clickable=@CanClickPile(i, clickedCard) 
                 clicked=@false/>
         }
-        @if (gameRunning.piles.Count < ((gameRunning.numPlayers - 1) / 4 + 1) * 4)
+        @if (gameRunning.piles.Count < gameRunning.numDecks * 4)
         {
             <PileView 
                 pile=@(new Badamsat.Pile()) 
