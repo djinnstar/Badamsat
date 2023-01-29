@@ -58,10 +58,11 @@ namespace BlazorServerSignalRApp.Server.Hubs
             game.Save();
         }
 
-        public async Task StartGame()
+        public async Task StartGame(bool showScores)
         {
             var game2 = Badamsat.Game.LoadOrCreate();
             var game = new Badamsat.Game(game2.usernames, game2.connectionIDs, true);
+            game.showScores = showScores;
             await Clients.All.UpdateBoard(game.Stringify());
             game.Save();
         }

@@ -1,4 +1,3 @@
-using Badamsat.Data;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -14,7 +13,6 @@ builder.Services.AddSignalR(options =>
 {
     options.KeepAliveInterval = new TimeSpan(0, 0, 1);
 });
-builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddResponseCompression(opts =>
 {
     opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(

@@ -11,7 +11,7 @@
 {
     @if (gameRunning.state == Badamsat.Game.State.GettingPlayers)
     {
-        <Waiting userID=@userID usernames=@gameRunning.usernames e="@StartGame"></Waiting>
+        <Waiting userID=@userID usernames=@gameRunning.usernames e="@StartGame" @bind-showScores="@showScores"></Waiting>
     }
     @if (gameRunning.state == Badamsat.Game.State.Running)
     {
@@ -42,6 +42,8 @@
         </div>
         <div class="straightline"></div>
         <div class="piles">
+        <button class=@PassButtonClass() @onclick="ToggleAutoPlaying">Auto-Playing : @autoPlaying</button>
+
         @for (int i = 0; i < gameRunning.piles.Count; i++)
         {
             <PileView 
@@ -97,6 +99,8 @@
     public Badamsat.Game gameRunning;
     public int? clickedCard;
     public bool clicked = false;
+    public bool showScores { get; set; }
+    public bool autoPlaying = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -108,12 +112,25 @@
         hubConnection.On<string>("UpdateBoard", (encoded) =>
         {
             this.gameRunning = Badamsat.Game.Destringify(encoded);
+            showScores = this.gameRunning.showScores;
+            if (active && autoPlaying)
+            {
+                var plays = gameRunning.AvailablePlays(userID);
+                for (int CardIndex = 0; CardIndex < plays.Count; CardIndex++)
+                {
+                    if (plays[CardIndex].Count > 0)
+                    {
+                        hubConnection.SendAsync("ChoosePlay", plays[CardIndex][0], CardIndex, this.userID);
+                        break;
+                    }
+                }
+            }
             StateHasChanged();
         });
 
         hubConnection.On("EndGame", (string winner) =>
         {
-            NavigationManager.NavigateTo("gameend/");
+            NavigationManager.NavigateTo($"gameend/{showScores}");
         });
 
         await hubConnection.StartAsync();
@@ -128,10 +145,10 @@
         }
     }
 
-    private async Task StartGame(MouseEventArgs e)
+    private async Task StartGame()
     {
         if (hubConnection is not null)
-            await hubConnection.SendAsync("StartGame");
+            await hubConnection.SendAsync("StartGame", showScores);
     }
 
     private void ChooseCard(int cardIndex)
@@ -167,6 +184,11 @@
         {
             await hubConnection.SendAsync("Pass");
         }
+    }
+
+    private void ToggleAutoPlaying()
+    {
+        autoPlaying = !autoPlaying;
     }
 
     private string PassButtonClass()

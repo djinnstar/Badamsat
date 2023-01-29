@@ -1,5 +1,6 @@
 ﻿@if (userID == 0)
 {
+    <button class="startbutton active" @onclick="ToggleShowScores">Show scores at the end : @showScores</button>
     <button class="startbutton active" @onclick="Click">Click here to start!</button>
 }
 else
@@ -24,10 +25,22 @@ else
     public List<string> usernames { get; set; }
 
     [Parameter]
-    public EventCallback<MouseEventArgs> e { get; set; }
+    public EventCallback e { get; set; }
+
+    [Parameter]
+    public bool showScores { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> showScoresChanged { get; set; }
 
     public async void Click()
     {
-        await e.InvokeAsync();
+        await e.InvokeAsync(showScores);
+    }
+
+    public async void ToggleShowScores()
+    {
+        showScores = !showScores;
+        await showScoresChanged.InvokeAsync(showScores);
     }
 }

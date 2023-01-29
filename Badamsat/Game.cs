@@ -106,6 +106,13 @@ namespace Badamsat
             cards.Sort(Card.Compare);
         }
 
+        public int Score()
+        {
+            int score = 0;
+            cards.ForEach(card => score += card.number);
+            return score;
+        }
+
         public string Xml()
         {
             string stringified = "<Hand>";
@@ -187,6 +194,8 @@ namespace Badamsat
 
         public int numPlayers => usernames.Count;
 
+        public bool showScores { get; internal set; } = false;
+
         private static string gameLocation = "wwwroot/game.xml";
 
         public Game(List<string> usernames, List<string> connectionIDs, bool deal)
@@ -229,6 +238,7 @@ namespace Badamsat
             stringified += "<CurrentPlayerID>" + currentPlayerNum.ToString() + "</CurrentPlayerID>";
             stringified += "<State>" + state.ToString() + "</State>";
             stringified += "<SavedAt>" + this.savedAt.ToString() + "</SavedAt>";
+            stringified += $"<ShowScores>{showScores}</ShowScores>";
             foreach (var q in this.mostRecentPlays)
             {
                 stringified += "<LastPlay>" + q.Item1.ToString();
@@ -261,6 +271,7 @@ namespace Badamsat
             var tempDate = new DateTime();
             var tempMostRecentPlays = new List<(int, Card?)>();
             var tempConnectionIDs = new List<string>();
+            bool showScores = false;
             for (int i = 0; i < xDoc.LastChild.ChildNodes.Count; i++)
             {
                 var element = xDoc.DocumentElement.ChildNodes.Item(i);
@@ -309,6 +320,10 @@ namespace Badamsat
                     else
                         tempMostRecentPlays.Add((Convert.ToInt32(splitted[0]), null));
                 }
+                if (element.Name == "ShowScores")
+                {
+                    showScores = element.InnerText == "True";
+                }
             }
             Game newGame = new(tempUsernames, tempConnectionIDs, false);
             newGame.currentPlayerNum = tempCurrentID;
@@ -317,6 +332,7 @@ namespace Badamsat
             newGame.state = tempState;
             newGame.savedAt = tempDate;
             newGame.mostRecentPlays = tempMostRecentPlays;
+            newGame.showScores = showScores;
             return newGame;
         }
 
